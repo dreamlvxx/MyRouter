@@ -24,6 +24,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
 //                new Xlog().addInterceptor(new Xlog.DefaultInterceptor()).addInterceptor(new Xlog.DiskInterceptor())
 //                        .log();
+//                Xlog.config(new Xlog.LogConfig.ConfigBuilder().setDebug(true).build()).i("sad");
+//                        startProcess(new Xlog.Event(Xlog.LogType.ASSERT,"sad","sad"));
             }
         });
 

@@ -2,6 +2,7 @@ package com.example.myrouter.utils;
 
 import android.os.Environment;
 import android.util.Base64;
+import android.util.EventLog;
 import android.util.Log;
 
 import java.io.File;
@@ -42,22 +43,23 @@ public class Xlog {
 
 
     /**
-     * //------------------变量配置表----------------------------------------
+     * //------------------全局变量配置表----------------------------------------
      *
      *  是否只有debug打印
+     *
      */
-    private static boolean isOnlyDebug;
+    private static boolean globalOnlyDebug;
     /**
      * 是否缓存本地disk
      */
-    private boolean isNeedDisk;
+    private static boolean globalNeedDisk;
     /**
      * tag
      */
     private static String globalTag;
 
     /**
-     * //------------------变量配置表----------------------------------------
+     * //----------------------------------------------------------------------
      */
 
 
@@ -65,87 +67,136 @@ public class Xlog {
     /**
      * 全局配置
      */
-    static class GlobalConfig{
-        static class Holder{
-            static GlobalConfig instance = new GlobalConfig();
-        }
-        private GlobalConfig(){}
-        private static GlobalConfig instance;
-        public GlobalConfig getInstance(){
-            instance = Holder.instance;
-            return instance;
+    public static class LogConfig {
+        private LogConfig(ConfigBuilder builder){
+            this.isOnlyDebug = builder.isDebug;
+            this.isDisk = builder.isDisk;
+            this.mTag = builder.tag;
         }
         //是否只有debug打印
-        private static boolean isOnlyDebug = false;
+        private boolean isOnlyDebug = false;
 
         //是否缓存本地disk
-        private static boolean isDisk = false;
+        private boolean isDisk = false;
 
         //全局tag
-        private static String tag;
+        private String mTag = "TvLog";
 
-        public static GlobalConfig setOnlyDebug(boolean onlyDebug) {
-            isOnlyDebug = onlyDebug;
-            return instance;
+        public static class ConfigBuilder{
+            boolean isDebug;
+            boolean isDisk;
+            String tag;
+
+            public ConfigBuilder setDebug(boolean debug) {
+                isDebug = debug;
+                return this;
+            }
+
+            public ConfigBuilder setDisk(boolean disk) {
+                isDisk = disk;
+                return this;
+            }
+
+            public ConfigBuilder setTag(String tag) {
+                this.tag = tag;
+                return this;
+            }
+
+            public LogConfig build(){
+                return new LogConfig(this);
+            }
         }
 
-        public static GlobalConfig setDisk(boolean disk) {
-            isDisk = disk;
-            return instance;
-        }
     }
 
     /**
-     * 局部一次性config
+     * 初始化--进行全局配置
+     * @param config
      */
-    static class OnceConfig{
-        //是否只有debug打印
-        private static boolean isOnlyDebug = false;
-
-        //是否缓存本地disk
-        private static boolean isDisk = false;
-
-        //全局tag
-        private static String tag;
+    public static void init(LogConfig config){
+        if (null == config){
+            return;
+        }
+        globalOnlyDebug = config.isOnlyDebug;
+        globalTag = config.mTag;
+        globalNeedDisk = config.isDisk;
     }
+
 
     /**
      * 事件流
      */
-    class Event{
-        public Event(LogType type,String content, String tag) {
-            this.content = content;
-            this.tag = tag;
-            this.type = type;
+    public static class Event{
+        private Event(EventBuilder buidler){
+            this.type = buidler.type;
+            this.needDisk = buidler.needDisk;
+            this.tag = buidler.tag;
+            this.content = buidler.content;
         }
 
-        LogType type;
-        String content;
-        String tag;
+        private LogType type;
+        private String content;
+        private String tag;
+        private boolean needDisk;
+
+        private static class EventBuilder{
+            private LogType type;
+            private String content;
+            private String tag;
+            private boolean needDisk;
+
+            public EventBuilder setType(LogType type) {
+                this.type = type;
+                return this;
+            }
+
+            public EventBuilder setContent(String content) {
+                this.content = content;
+                return this;
+            }
+
+            public EventBuilder setTag(String tag) {
+                this.tag = tag;
+                return this;
+            }
+
+            public EventBuilder setNeedDisk(boolean needDisk) {
+                this.needDisk = needDisk;
+                return this;
+            }
+
+            public Event build(){
+                return new Event(this);
+            }
+        }
     }
 
     /**
      * 事件流入口
      * @param e
      */
-    public void startProcess(Event e){
+    public static void startProcess(Event e){
         //先清空所有的interceptor
         InterceptorManager.clear();
         //先添加全局的default
         InterceptorManager.addInterceptor(new DefaultInterceptor());
         //根据是否选择disk添加
-        if (isNeedDisk){
+        if (globalNeedDisk){
             InterceptorManager.addInterceptor(new DiskInterceptor());
+            //根据临时配置是否需要disk
+            if (!e.needDisk){
+                InterceptorManager.remove(1);
+            }
         }
+
         RealPrintChain rel = new RealPrintChain(0,e);
-        String s= rel.process(e);
-        Log.e(TAG, "log: 返回值 = " + s);
+        rel.process(e);
     }
 
     /**
      * 调用链默认实现
      */
-    class RealPrintChain implements LogInterceptor.PrintChain {
+    static class RealPrintChain implements LogInterceptor.PrintChain {
         int index;
         Event event;
 
@@ -176,9 +227,8 @@ public class Xlog {
     }
 
 
-    public Xlog addInterceptor(LogInterceptor s){
+    public static void addInterceptor(LogInterceptor s){
         InterceptorManager.addInterceptor(s);
-        return this;
     }
 
     /**
@@ -193,6 +243,10 @@ public class Xlog {
 
         public static void clear(){
             strategyArrayList.clear();
+        }
+
+        public static void remove(int index){
+            strategyArrayList.remove(index);
         }
     }
 
@@ -319,6 +373,16 @@ public class Xlog {
         if(sDebug){
             Log.d(tag, log);
         }
+    }
+
+    public static void d(boolean needDisk,String tag,String log){
+        Event ee = new Event.EventBuilder()
+                .setContent(log)
+                .setNeedDisk(needDisk)
+                .setTag(tag)
+                .build();
+
+        startProcess(ee);
     }
 
     public static void d(String log) {
