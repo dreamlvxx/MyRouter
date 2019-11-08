@@ -59,12 +59,14 @@ public class GreetProcessor extends AbstractProcessor {
         CodeBlock.Builder builder = CodeBlock.builder();
 
         Set<? extends Element> anno = roundEnvironment.getElementsAnnotatedWith(Greet.class);
+        StringBuilder sb = new StringBuilder();
         for (Element e : anno) {
             Symbol.ClassSymbol clas = (Symbol.ClassSymbol) e;
             Greet uri = clas.getAnnotation(Greet.class);
-
+//            builder.addStatement(uri.value());
+            sb.append(uri.value());
         }
-        write2File(builder.build());
+        write2File(sb.toString(),builder.build());
         return true;
     }
 
@@ -81,8 +83,8 @@ public class GreetProcessor extends AbstractProcessor {
     }
 
 
-    private void write2File(CodeBlock block){
-        MethodSpec method1 = MethodSpec.methodBuilder("methodxx1")
+    private void write2File(String name,CodeBlock block){
+        MethodSpec method1 = MethodSpec.methodBuilder(name)
                 .addModifiers(Modifier.PUBLIC,Modifier.STATIC)
                 .returns(TypeName.VOID)
                 .addCode(block)
