@@ -16,6 +16,7 @@ import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 
 public class Xlog {
 
@@ -28,10 +29,10 @@ public class Xlog {
     public Xlog(){}
 
     //全局配置 : 局部配置
-    //strategy  打印策略(本地，disk)
     //Interceptor 拦截器到指定strategy（责任链，事件流event -- 》）
 
 
+    // TODO: 19-11-8 代理这层可以直接把所有逻辑放出去，便于插拔
 //    //加一层代理，把I,D,W,A,V,E代理给代理类去处理
 //    public class LogProxy{
 //        Xlog xlog;
@@ -40,11 +41,50 @@ public class Xlog {
 //        }
 //    }
 
+    public interface LogProxy{
+        void i();
+        void w();
+        void d();
+        void a();
+        void v();
+        void e();
+    }
 
+    public class RealLogProxy implements LogProxy{
+
+        @Override
+        public void i() {
+
+        }
+
+        @Override
+        public void w() {
+
+        }
+
+        @Override
+        public void d() {
+
+        }
+
+        @Override
+        public void a() {
+
+        }
+
+        @Override
+        public void v() {
+
+        }
+
+        @Override
+        public void e() {
+
+        }
+    }
 
     /**
      * //------------------全局变量配置表----------------------------------------
-     *
      *  是否只有debug打印
      *
      */
@@ -61,7 +101,6 @@ public class Xlog {
     /**
      * //----------------------------------------------------------------------
      */
-
 
 
     /**
@@ -117,9 +156,13 @@ public class Xlog {
         if (null == config){
             return;
         }
+        InterceptorManager.addInterceptor(new DefaultInterceptor());
         globalOnlyDebug = config.isOnlyDebug;
         globalTag = config.mTag;
         globalNeedDisk = config.isDisk;
+        if (globalNeedDisk){
+            InterceptorManager.addInterceptor(new DiskInterceptor());
+        }
     }
 
 
@@ -175,21 +218,12 @@ public class Xlog {
      * 事件流入口
      * @param e
      */
-    public static void startProcess(Event e){
-        //先清空所有的interceptor
-        InterceptorManager.clear();
-        //先添加全局的default
-        InterceptorManager.addInterceptor(new DefaultInterceptor());
-        //根据是否选择disk添加
-        if (globalNeedDisk){
-            InterceptorManager.addInterceptor(new DiskInterceptor());
-            //根据临时配置是否需要disk
-            if (!e.needDisk){
-                InterceptorManager.remove(1);
-            }
+    public static void startProcess(Event e) {
+        //根据临时配置是否需要disk
+        if (!e.needDisk) {
+            InterceptorManager.remove(DiskInterceptor.KEY);
         }
-
-        RealPrintChain rel = new RealPrintChain(0,e);
+        RealPrintChain rel = new RealPrintChain(0, e);
         rel.process(e);
     }
 
@@ -226,32 +260,33 @@ public class Xlog {
         }
     }
 
-
-    public static void addInterceptor(LogInterceptor s){
-        InterceptorManager.addInterceptor(s);
-    }
-
     /**
-     * 拦截器管理
+     * 全局拦截器管理
      */
     private static class InterceptorManager {
-        private static ArrayList<LogInterceptor> strategyArrayList = new ArrayList<>();
+        private static HashMap<String,LogInterceptor> strategyArrayList = new HashMap<>();
 
         public static void addInterceptor(LogInterceptor s){
-            strategyArrayList.add(s);
+            strategyArrayList.put(s.name(),s);
         }
 
         public static void clear(){
             strategyArrayList.clear();
         }
 
-        public static void remove(int index){
-            strategyArrayList.remove(index);
+        public static void remove(String key){
+            strategyArrayList.remove(key);
+        }
+
+        public static void getInterceptor(String key){
+            strategyArrayList.get(key);
         }
     }
 
 
     public interface LogInterceptor {
+        String name();
+
         //做处理
         String intercept(PrintChain chain);
         //调用链
@@ -271,6 +306,13 @@ public class Xlog {
      */
 
     public static class DefaultInterceptor implements LogInterceptor,Dispatcher{
+
+        public static final String KEY = "default";
+
+        @Override
+        public String name() {
+            return KEY;
+        }
 
         @Override
         public String intercept(PrintChain chain) {
@@ -324,6 +366,13 @@ public class Xlog {
      * 磁盘打印的拦截器
      */
     public static class DiskInterceptor implements LogInterceptor {
+
+        public static final String KEY = "disk";
+
+        @Override
+        public String name() {
+            return KEY;
+        }
 
         @Override
         public String intercept(PrintChain chain) {
@@ -381,7 +430,6 @@ public class Xlog {
                 .setNeedDisk(needDisk)
                 .setTag(tag)
                 .build();
-
         startProcess(ee);
     }
 
