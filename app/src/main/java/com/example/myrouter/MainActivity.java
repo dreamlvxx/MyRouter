@@ -22,8 +22,8 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.tv_heelo).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new Xlog().addInterceptor(new Xlog.DefaultInterceptor()).addInterceptor(new Xlog.DiskInterceptor())
-                        .log();
+//                new Xlog().addInterceptor(new Xlog.DefaultInterceptor()).addInterceptor(new Xlog.DiskInterceptor())
+//                        .log();
             }
         });
 

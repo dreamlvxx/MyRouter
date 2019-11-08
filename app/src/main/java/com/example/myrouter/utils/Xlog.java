@@ -15,7 +15,6 @@ import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 public class Xlog {
 
@@ -32,49 +31,120 @@ public class Xlog {
     //Interceptor 拦截器到指定strategy（责任链，事件流event -- 》）
 
 
-    //全局配置
-    class GlobalConfig{
+//    //加一层代理，把I,D,W,A,V,E代理给代理类去处理
+//    public class LogProxy{
+//        Xlog xlog;
+//        public LogProxy(Xlog xlog) {
+//            this.xlog = xlog;
+//        }
+//    }
+
+
+
+    /**
+     * //------------------变量配置表----------------------------------------
+     *
+     *  是否只有debug打印
+     */
+    private static boolean isOnlyDebug;
+    /**
+     * 是否缓存本地disk
+     */
+    private boolean isNeedDisk;
+    /**
+     * tag
+     */
+    private static String globalTag;
+
+    /**
+     * //------------------变量配置表----------------------------------------
+     */
+
+
+
+    /**
+     * 全局配置
+     */
+    static class GlobalConfig{
+        static class Holder{
+            static GlobalConfig instance = new GlobalConfig();
+        }
+        private GlobalConfig(){}
+        private static GlobalConfig instance;
+        public GlobalConfig getInstance(){
+            instance = Holder.instance;
+            return instance;
+        }
         //是否只有debug打印
-        boolean isOnlyDebug;
-        //打印范围
+        private static boolean isOnlyDebug = false;
 
         //是否缓存本地disk
-        boolean isDisk;
-    }
+        private static boolean isDisk = false;
 
+        //全局tag
+        private static String tag;
 
-
-
-
-    //局部配置
-    public void setDebug(){
-
-    }
-
-    public void setDisk(){
-
-    }
-
-
-    class Event{
-        public Event(String content, String tag) {
-            this.content = content;
-            this.tag = tag;
+        public static GlobalConfig setOnlyDebug(boolean onlyDebug) {
+            isOnlyDebug = onlyDebug;
+            return instance;
         }
 
+        public static GlobalConfig setDisk(boolean disk) {
+            isDisk = disk;
+            return instance;
+        }
+    }
+
+    /**
+     * 局部一次性config
+     */
+    static class OnceConfig{
+        //是否只有debug打印
+        private static boolean isOnlyDebug = false;
+
+        //是否缓存本地disk
+        private static boolean isDisk = false;
+
+        //全局tag
+        private static String tag;
+    }
+
+    /**
+     * 事件流
+     */
+    class Event{
+        public Event(LogType type,String content, String tag) {
+            this.content = content;
+            this.tag = tag;
+            this.type = type;
+        }
+
+        LogType type;
         String content;
         String tag;
     }
 
-    //test
-    public void log(){
-        Event e = new Event("xx","你想说什么");
+    /**
+     * 事件流入口
+     * @param e
+     */
+    public void startProcess(Event e){
+        //先清空所有的interceptor
+        InterceptorManager.clear();
+        //先添加全局的default
+        InterceptorManager.addInterceptor(new DefaultInterceptor());
+        //根据是否选择disk添加
+        if (isNeedDisk){
+            InterceptorManager.addInterceptor(new DiskInterceptor());
+        }
         RealPrintChain rel = new RealPrintChain(0,e);
         String s= rel.process(e);
         Log.e(TAG, "log: 返回值 = " + s);
     }
 
-    List<LogInterceptor> interceptors = new ArrayList<>();
+    /**
+     * 调用链默认实现
+     */
     class RealPrintChain implements LogInterceptor.PrintChain {
         int index;
         Event event;
@@ -111,10 +181,18 @@ public class Xlog {
         return this;
     }
 
-    static class InterceptorManager {
-        static ArrayList<LogInterceptor> strategyArrayList = new ArrayList<>();
+    /**
+     * 拦截器管理
+     */
+    private static class InterceptorManager {
+        private static ArrayList<LogInterceptor> strategyArrayList = new ArrayList<>();
+
         public static void addInterceptor(LogInterceptor s){
             strategyArrayList.add(s);
+        }
+
+        public static void clear(){
+            strategyArrayList.clear();
         }
     }
 
@@ -122,14 +200,7 @@ public class Xlog {
     public interface LogInterceptor {
         //做处理
         String intercept(PrintChain chain);
-        void a();
-        void e();
-        void i();
-        void d();
-        void v();
-        void w();
-
-        //内部的调用链
+        //调用链
         interface PrintChain{
             Event getEvent();
             String process(Event event);
@@ -137,11 +208,15 @@ public class Xlog {
     }
 
     //进行事件分发 -> e,i,d,w,i,a
-    public class Dispatcher{
-
+    interface Dispatcher{
+        void resolve(LogType type,Event event);
     }
 
-    public static class DefaultInterceptor implements LogInterceptor {
+    /**
+     *  默认拦截器实现
+     */
+
+    public static class DefaultInterceptor implements LogInterceptor,Dispatcher{
 
         @Override
         public String intercept(PrintChain chain) {
@@ -150,40 +225,50 @@ public class Xlog {
             Log.e(TAG, "这是default打印的东西" + e.content);
             e.content += "default返回值";
             //处理完毕之后，调用chain本身的process，进行下一个的处理
+            resolve(e.type,e);
             return chain.process(e);
         }
 
         @Override
-        public void a() {
-
-        }
-
-        @Override
-        public void e() {
-
-        }
-
-        @Override
-        public void i() {
-
-        }
-
-        @Override
-        public void d() {
-
-        }
-
-        @Override
-        public void v() {
-
-        }
-
-        @Override
-        public void w() {
-
+        public void resolve(LogType type, Event event) {
+            String finalTag = globalTag;
+            if (null != event.tag && event.tag.length() > 0){
+                finalTag = event.tag;
+            }
+            switch (type){
+                case ASSERT:
+                    break;
+                case INFO:
+                    i(finalTag,event.content);
+                    break;
+                case WARN:
+                    w(finalTag,event.content);
+                    break;
+                case DEBUG:
+                    d(finalTag,event.content);
+                    break;
+                case ERROR:
+                    e(finalTag,event.content);
+                    break;
+                case VERBOSE:
+                    v(finalTag,event.content);
+                    break;
+                    default:
+                        break;
+            }
         }
     }
 
+    /**
+     * 打印类型
+     */
+    public enum LogType{
+        VERBOSE,DEBUG,INFO,WARN,ERROR,ASSERT
+    }
+
+    /**
+     * 磁盘打印的拦截器
+     */
     public static class DiskInterceptor implements LogInterceptor {
 
         @Override
@@ -194,34 +279,6 @@ public class Xlog {
             //处理完毕之后，调用本身的process，进行下一个的处理
             e.content += "disk返回值";
             return chain.process(e);
-        }
-
-        @Override
-        public void a() {
-        }
-
-        @Override
-        public void e() {
-        }
-
-        @Override
-        public void i() {
-
-        }
-
-        @Override
-        public void d() {
-
-        }
-
-        @Override
-        public void v() {
-
-        }
-
-        @Override
-        public void w() {
-
         }
     }
 
