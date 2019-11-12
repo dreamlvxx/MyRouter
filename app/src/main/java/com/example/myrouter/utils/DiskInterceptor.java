@@ -23,7 +23,7 @@ public class DiskInterceptor implements LogInterceptor {
     public String intercept(PrintChain chain) {
         Event e = chain.getEvent();
         //这里打印到file
-        f(DiskIO.Level.LEVEL_HIGH,"",chain.getEvent().content);
+        f(DiskIO.Level.LEVEL_HIGH,e.tag,chain.getEvent().content);
         return chain.process(e);
     }
 

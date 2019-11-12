@@ -21,12 +21,12 @@ public class Event{
     public boolean force;
 
     public static class EventBuilder{
-        private LogType type;
-        private String content;
+        private LogType type = LogType.DEBUG;
+        private String content = "";
         private String tag = Xlog.sTag;
-        private boolean needDisk;
-        private boolean isDebug;
-        private boolean force;
+        private boolean needDisk = false;
+        private boolean isDebug = true;
+        private boolean force = false;
 
         public EventBuilder setType(LogType type) {
             this.type = type;

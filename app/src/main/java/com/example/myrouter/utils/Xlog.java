@@ -55,7 +55,7 @@ public class Xlog {
 
     public static void init(boolean debug) {
         init("XLog", debug);
-        initGlobal(new LogConfig.ConfigBuilder().setDebug(debug).setDisk(false).build());
+        initGlobal(new LogConfig.ConfigBuilder().setDebug(debug).setDisk(true).build());
     }
 
     public static void init(String defaultTag, boolean debug) {

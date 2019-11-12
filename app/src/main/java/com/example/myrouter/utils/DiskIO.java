@@ -41,10 +41,10 @@ public class DiskIO {
             if(!file1.exists()){
                 file1.createNewFile();
             }
-            String baseStr = Base64.encodeToString(content.getBytes(), Base64.DEFAULT);
+//            String baseStr = Base64.encodeToString(content.getBytes(), Base64.NO_WRAP);
             fos = new FileOutputStream(file1, true);
             channel = fos.getChannel();
-            byte[] array = baseStr.getBytes("utf-8");
+            byte[] array = content.getBytes("utf-8");
             ByteBuffer buffer = ByteBuffer.wrap(array);
             channel.write(buffer);
         } catch (FileNotFoundException e) {
@@ -95,13 +95,13 @@ public class DiskIO {
         return files[0];
     }
 
-    public static int diffDays(Date date1,Date date2)
+    private static int diffDays(Date date1,Date date2)
     {
         int days = (int) ((date2.getTime() - date1.getTime()) / (1000*3600*24));
         return days;
     }
 
-    public static boolean delFile(String filename) {
+    private static boolean delFile(String filename) {
         File file = new File(filename);
         if (!file.exists()) {
             return false;
@@ -123,7 +123,6 @@ public class DiskIO {
         FileInputStream fis = null;
         FileChannel channel = null;
         String res = "";
-        String finalStr = "";
         try {
             fis = new FileInputStream(file);
             channel = fis.getChannel();
@@ -133,7 +132,6 @@ public class DiskIO {
             Buffer bf = buffer.flip();
             byte[] bt = (byte[]) bf.array();
             res = new String(bt,"utf-8");
-            finalStr = new String(Base64.decode(res.getBytes(), Base64.DEFAULT));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -153,8 +151,7 @@ public class DiskIO {
                 e.printStackTrace();
             }
         }
-//        Log.e(TAG, "read: " + finalStr);
-        return finalStr;
+        return res;
     }
 
 
@@ -229,15 +226,17 @@ public class DiskIO {
             sb.append("{")
                     .append("Time:")
                     .append(time)
+                    .append(" | ")
                     .append("Tag:")
                     .append(tag)
-                    .append("|")
+                    .append(" | ")
                     .append("Tid:")
                     .append(tid)
-                    .append("|")
+                    .append(" | ")
                     .append("Content:")
                     .append(content)
-                    .append("}");
+                    .append("}")
+                    .append("\n");
             return sb.toString();
         }
     }

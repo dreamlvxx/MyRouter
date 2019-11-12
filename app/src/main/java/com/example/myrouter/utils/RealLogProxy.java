@@ -10,7 +10,7 @@ public class RealLogProxy implements LogProxy{
      * 事件流入口
      * @param e
      */
-    public void startProcess(Event e) {
+    private void startProcess(Event e) {
         //根据临时配置是否需要disk
         if (!e.needDisk) {
             InterceptorManager.remove(DiskInterceptor.KEY);
@@ -23,7 +23,8 @@ public class RealLogProxy implements LogProxy{
 
     @Override
     public void e(String log) {
-        Event event = new Event.EventBuilder().setType(LogType.ERROR)
+        Event event = new Event.EventBuilder()
+                .setType(LogType.ERROR)
                 .setContent(log).build();
         startProcess(event);
     }
@@ -54,6 +55,7 @@ public class RealLogProxy implements LogProxy{
         Event event = new Event.EventBuilder().setType(LogType.DEBUG)
                 .setDebug(true)
                 .setForce(false)
+                .setNeedDisk(true)
                 .setContent(log).build();
         startProcess(event);
     }
@@ -62,6 +64,7 @@ public class RealLogProxy implements LogProxy{
     public void d(String tag, String log) {
         Event event = new Event.EventBuilder().setType(LogType.DEBUG)
                 .setTag(tag)
+                .setNeedDisk(true)
                 .setDebug(true)
                 .setForce(false)
                 .setContent(log).build();

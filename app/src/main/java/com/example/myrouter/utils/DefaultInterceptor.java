@@ -1,9 +1,6 @@
 package com.example.myrouter.utils;
 
-
 import android.util.Log;
-
-
 
 /**
  * 默认拦截器实现
@@ -23,10 +20,7 @@ public class DefaultInterceptor implements LogInterceptor,Dispatcher{
         //先取到这个事件，进行处理
         Event e = chain.getEvent();
 //        Log.e(TAG, "这是default打印的东西" + e.content);
-//        e.content += "default返回值";
-        if(e.force){
-            resolve(e.type,e);
-        }else if (e.isDebug){
+        if(e.force || e.isDebug){
             resolve(e.type,e);
         }
         return chain.process(e);
