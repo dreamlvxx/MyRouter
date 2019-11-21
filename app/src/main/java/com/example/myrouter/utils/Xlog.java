@@ -16,12 +16,6 @@ public class Xlog {
     public Xlog(){}
 
     /**
-     * //------------------全局变量配置表----------------------------------------
-     *  是否只有debug打印
-     *
-     */
-    public static boolean globalOnlyDebug;
-    /**
      * 是否缓存本地disk
      */
     public static boolean globalNeedDisk;
@@ -42,7 +36,7 @@ public class Xlog {
         if (null == config){
             return;
         }
-        globalOnlyDebug = config.isOnlyDebug;
+        sDebug = config.isOnlyDebug;
         if (null != config.mTag && config.mTag.length() > 0){
             sTag = config.mTag;
         }

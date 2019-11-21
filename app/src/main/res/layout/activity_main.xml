@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.example.myrouter.MyDragView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="#44666666"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    android:paddingTop="24dp"
+    android:paddingBottom="20dp"
+    android:layout_gravity="center"
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+
     <TextView
+        android:textColor="@color/colorAccent"
         android:id="@+id/tv_heelo"
         android:layout_width="wrap_content"
         android:layout_height="50dp"
@@ -17,12 +22,14 @@
 
 
     <TextView
+        android:textColor="@color/colorPrimaryDark"
+        android:layout_alignParentBottom="true"
         android:id="@+id/tv_get"
         android:background="#ff00ff"
         android:gravity="center"
         android:text="滑动解锁》》》"
-        android:layout_gravity="center"
+        android:layout_marginLeft="100dp"
         android:layout_width="wrap_content"
         android:layout_height="50dp"/>
 
-</com.example.myrouter.MyDragView>
+</RelativeLayout>

@@ -24,8 +24,8 @@ public class Event{
         private LogType type = LogType.DEBUG;
         private String content = "";
         private String tag = Xlog.sTag;
-        private boolean needDisk = false;
-        private boolean isDebug = true;
+        private boolean needDisk = Xlog.globalNeedDisk;
+        private boolean isDebug = Xlog.sDebug;
         private boolean force = false;
 
         public EventBuilder setType(LogType type) {
