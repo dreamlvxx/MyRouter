@@ -1,35 +1,61 @@
 package com.example.myrouter.utils;
 
 /**
- * 全局配置
+ * Copyright (C) 2013, Xiaomi Inc. All rights reserved.
+ * <p>
+ * 分发器
+ * 全局配置参数
+ *
+ * @author lvxingxing
+ * @date 19-11-22
  */
 public class LogConfig {
+
+    /**
+     * 是否只有debug打印
+     */
+    public boolean mDebug;
+
+    /**
+     * 是否打印本地disk
+     */
+    public boolean mDisk;
+
+    /**
+     * 全局Tag
+     */
+    public String mTag;
+
+    /**
+     * 用户自定义path
+     */
+    public String mPath;
+
     private LogConfig(ConfigBuilder builder){
-        this.isOnlyDebug = builder.isDebug;
-        this.isDisk = builder.isDisk;
+        this.mDebug = builder.debug;
+        this.mDisk = builder.disk;
         this.mTag = builder.tag;
+        this.mPath = builder.path;
     }
-    //是否只有debug打印
-    public boolean isOnlyDebug;
-
-    //是否打印本地disk
-    public boolean isDisk ;
-
-    //全局tag
-    public String mTag ;
 
     public static class ConfigBuilder{
-        boolean isDebug;
-        boolean isDisk;
-        String tag;
+        private String path = Constant.DEFAULT_LOGOUT_PATH;
+        private boolean debug = false;
+        private boolean disk = false;
+        private String tag = XLog.TAG;
+
+        public ConfigBuilder setPath(String path) {
+            this.path = path;
+            return this;
+        }
 
         public ConfigBuilder setDebug(boolean debug) {
-            isDebug = debug;
+            this.debug = debug;
             return this;
         }
 
         public ConfigBuilder setDisk(boolean disk) {
-            isDisk = disk;
+            this.disk = disk;
             return this;
         }
 

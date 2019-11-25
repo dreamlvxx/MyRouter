@@ -1,17 +1,22 @@
 package com.example.myrouter.utils;
 
 
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static com.example.myrouter.utils.DiskIO.DEFAULT_LOGOUT_PATH;
 import static com.example.myrouter.utils.DiskIO.write;
 
+
 /**
- * 磁盘打印的拦截器
- * @author qwer
+ * Copyright (C) 2013, Xiaomi Inc. All rights reserved.
+ * <p>
+ * 打印磁盘的拦截处理器
+ *
+ * @author lvxingxing
+ * @date 19-11-22
  */
-public class DiskInterceptor implements LogInterceptor {
+public class DiskInterceptor implements ILogInterceptor {
 
     public static final String KEY = "disk";
 
@@ -22,29 +27,24 @@ public class DiskInterceptor implements LogInterceptor {
 
     @Override
     public String intercept(PrintChain chain) {
-        Event e = chain.getEvent();
-        //这里打印到file
-        f(DiskIO.Level.LEVEL_HIGH,e.tag,chain.getEvent().content);
+        LogEvent e = chain.getEvent();
+        //进行内部打印
+        f(e.level,e.tag,e.content);
         return chain.process(e);
     }
 
-    public static void f(int level,String tag,String content){
-        f(level,tag,DEFAULT_LOGOUT_PATH,content);
-    }
-
-    public static void f(int level,String tag,String path,String content){
-        if(null == path || null == content){
+    private static void f(int level, String tag, String content){
+        if(null == content){
             return;
         }
         Thread t = Thread.currentThread();
-        DiskIO.LogLocal lo = new DiskIO.Config()
+        FileLogEntity lo = new FileLogEntity.LogEntityBuilder()
                 .setContent(content)
                 .setLevel(level)
                 .setTid(t.getId())
                 .setTag(tag)
                 .setTime(new SimpleDateFormat("yyyy-MM-dd-hh:mm:ss").format(new Date()))
                 .build();
-//        Log.e(TAG, "f: " + lo.toString());
-        write(path, lo.toString());
+        write(XLog.mDiskFileDirPath, lo.toString());
     }
 }

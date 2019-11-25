@@ -1,7 +1,5 @@
 package com.example.myrouter.utils;
 
-import android.os.Environment;
-import android.util.Base64;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,6 +11,15 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Date;
 
+import static com.example.myrouter.utils.Constant.FILE_NAME;
+import static com.example.myrouter.utils.Constant.OUT_DATE;
+
+/**
+ * Copyright (C) 2013, Xiaomi Inc. All rights reserved.
+ * <p>
+ * 写文件工具
+ * Created by lvxingxing on 19-11-22.
+ */
 public class DiskIO {
 
     /**
@@ -20,29 +27,24 @@ public class DiskIO {
      * 2.缓存策略（【日志过期自动清理 -默认 30 天】）
      * 3.输出内容结构体（TAG : 线程信息(thread) ： 进程信息 ： 类信息(class)【暂不支持】 ： 内容结构【自定义】）
      * 4.Level 输出等级分类【0-H 1-M 2-L】
-     * 5.加密处理（BASE64）
+     * 5.加密处理（BASE64） [不需要]
      * 6.压缩处理（huffman）【暂不支持】
      * 7.输出流（NIO）
-     * 8.日志导出（发送服务器(capacity)）暂无
+     * 8.日志导出（发送服务器(capacity)）[暂不支持]
      */
-    public final static String DEFAULT_LOGOUT_PATH =  Environment.getExternalStorageDirectory()  + "/MiLog/";//文件夹
-    public final static String FILE_NAME = "milog";//文件名称
-
-    public static void write(String path, String content) {
+    public static void write(String dirPath, String content) {
         FileOutputStream fos = null;
         FileChannel channel = null;
         try {
-            File dir = new File(path);
+            File dir = new File(dirPath);
             if (!dir.exists()) {
                 dir.mkdir();
             }
-            File file1 = autoDeleteAndReCreate(dir);
-//            Log.e(TAG,"write: path = " + file1.getPath());
-            if(!file1.exists()){
-                file1.createNewFile();
+            File outPath = autoDeleteAndReCreate(dir);
+            if(!outPath.exists()){
+                outPath.createNewFile();
             }
-//            String baseStr = Base64.encodeToString(content.getBytes(), Base64.NO_WRAP);
-            fos = new FileOutputStream(file1, true);
+            fos = new FileOutputStream(outPath, true);
             channel = fos.getChannel();
             byte[] array = content.getBytes("utf-8");
             ByteBuffer buffer = ByteBuffer.wrap(array);
@@ -68,6 +70,7 @@ public class DiskIO {
     /**
      * 过期时自动删除重建
      * 首先结构为两层，第一层为dir文件夹，然后第二层只有一个文件。利用文件name中保存一个时间戳，然后根据时间戳计算过期。
+     * 输出策略：day ： hour
      * @param dir
      * @return
      * @throws IOException
@@ -75,27 +78,35 @@ public class DiskIO {
     private static File autoDeleteAndReCreate(File dir) throws IOException {
         File[] files = dir.listFiles();
         if(null == files || files.length <= 0){
-            File file = new File(dir + File.separator + FILE_NAME  + "-"+System.currentTimeMillis() + ".txt");
+            File file = new File(dir + File.separator + FILE_NAME  + "-"+ System.currentTimeMillis() + ".txt");
             file.createNewFile();
             return file;
         }
         //保质期处理--检查是否过期
+        for (File file : files) {
+
+        }
         String name = files[0].getName();
         String sTime = name.substring(name.indexOf("-") + 1,name.indexOf("."));
         long tt = Long.valueOf(sTime);
         Date d1 = new Date(tt);
         Date d2 = new Date();
-//        Log.e(TAG, "autoDeleteAndReCreate: d1" + d1 + "d2" + d2 + "diff" + diffDays(d2,d1));
-        if(diffDays(d1,d2) > 30){
+        if(diffDays(d1,d2) > OUT_DATE){
             delFile(dir + File.separator + name);
-            File file = new File(dir + File.separator + FILE_NAME  + "-"+System.currentTimeMillis() + ".txt");
+            File file = new File(dir + File.separator + FILE_NAME  + "-"+ System.currentTimeMillis() + ".txt");
             file.createNewFile();
             return file;
         }
         return files[0];
     }
 
-    private static int diffDays(Date date1,Date date2)
+    /**
+     * 比较两个时间的差值
+     * @param date1
+     * @param date2
+     * @return
+     */
+    private static int diffDays(Date date1, Date date2)
     {
         int days = (int) ((date2.getTime() - date1.getTime()) / (1000*3600*24));
         return days;
@@ -108,7 +119,6 @@ public class DiskIO {
         }
 
         if (file.isFile()) {
-//            Log.e(TAG,"delFile: success");
             return file.delete();
         } else {
             String[] filenames = file.list();
@@ -137,7 +147,7 @@ public class DiskIO {
         } catch (IOException e) {
             e.printStackTrace();
         }catch (IllegalArgumentException e){
-            //base64解析不了\n 这种东西。
+            e.printStackTrace();
         }
         finally {
             try {
@@ -155,89 +165,5 @@ public class DiskIO {
     }
 
 
-    interface Level{
-        int LEVEL_HIGH = 0;
-        int LEVEL_MIDIUM = 1;
-        int LEVEL_LOW = 2;
-    }
-    static class Config{
-        String time ;
-        String tag;
-        int level;
-        int pid;
-        long tid;
-        String content;
 
-        public Config setTime(String time) {
-            this.time = time;
-            return this;
-        }
-
-        public Config setTag(String tag) {
-            this.tag = tag;
-            return this;
-        }
-
-        public Config setLevel(int level) {
-            this.level = level;
-            return this;
-        }
-
-        public Config setPid(int pid) {
-            this.pid = pid;
-            return this;
-        }
-
-        public Config setTid(long tid) {
-            this.tid = tid;
-            return this;
-        }
-
-        public Config setContent(String content) {
-            this.content = content.replaceAll(" ","");
-            return this;
-        }
-
-        public LogLocal build(){
-            return new LogLocal(this);
-        }
-    }
-
-    static class LogLocal{
-        String time ;
-        String tag;
-        int level;
-        int pid;
-        long tid;
-        String content;
-
-        public LogLocal(Config config) {
-            this.time = config.time;
-            this.tag = config.tag;
-            this.level = config.level;
-            this.pid = config.pid;
-            this.tid = config.tid;
-            this.content = config.content;
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("{")
-                    .append("Time:")
-                    .append(time)
-                    .append(" | ")
-                    .append("Tag:")
-                    .append(tag)
-                    .append(" | ")
-                    .append("Tid:")
-                    .append(tid)
-                    .append(" | ")
-                    .append("Content:")
-                    .append(content)
-                    .append("}")
-                    .append("\n");
-            return sb.toString();
-        }
-    }
 }

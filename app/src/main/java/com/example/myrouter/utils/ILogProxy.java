@@ -1,9 +1,15 @@
 package com.example.myrouter.utils;
 
 /**
- * Xlog代理层
+ * Copyright (C) 2013, Xiaomi Inc. All rights reserved.
+ * <p>
+ * 分发器
+ * XLOG代理器
+ *
+ * @author lvxingxing
+ * @date 19-11-22
  */
-public interface LogProxy{
+public interface ILogProxy {
     void e(String log);
     void e(String tag, String log);
 
@@ -14,7 +20,7 @@ public interface LogProxy{
     void d(String tag, String log);
     void d(String log, boolean force);
     void d(String tag, String log, boolean force);
-    void d(boolean needDisk,String tag,String log);
+    void d(boolean needDisk, String tag, String log);
 
     void w(String log);
     void w(String log, boolean force);

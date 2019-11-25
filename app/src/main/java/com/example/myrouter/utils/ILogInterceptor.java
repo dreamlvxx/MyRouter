@@ -1,9 +1,15 @@
 package com.example.myrouter.utils;
 
 /**
- * 事件流拦截器
+ * Copyright (C) 2013, Xiaomi Inc. All rights reserved.
+ * <p>
+ * 分发器
+ * log事件拦截器接口
+ *
+ * @author lvxingxing
+ * @date 19-11-22
  */
-public interface LogInterceptor {
+public interface ILogInterceptor {
     /**
      * 拦截器名称
      * @return name
@@ -11,8 +17,8 @@ public interface LogInterceptor {
     String name();
 
     /**
-     * 拦截，处理
-     * @param chain 调用链
+     * 拦截进行处理
+     * @param chain 调用链结点
      * @return 处理后的event
      */
     String intercept(PrintChain chain);
@@ -25,13 +31,13 @@ public interface LogInterceptor {
          * 得到一个事件
          * @return event
          */
-        Event getEvent();
+        LogEvent getEvent();
 
         /**
          * 调用链的处理
-         * @param event 事件
+         * @param logEvent 事件
          * @return 处理后的event
          */
-        String process(Event event);
+        String process(LogEvent logEvent);
     }
 }
