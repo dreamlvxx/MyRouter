@@ -35,17 +35,17 @@ public class LogConfig {
         this.mDebug = builder.debug;
         this.mDisk = builder.disk;
         this.mTag = builder.tag;
-        this.mPath = builder.path;
+//        this.mPath = builder.path;
     }
 
     public static class ConfigBuilder{
-        private String path = Constant.DEFAULT_LOGOUT_PATH;
+//        private String path = Constant.DEFAULT_LOGOUT_PATH;
         private boolean debug = false;
         private boolean disk = false;
         private String tag = XLog.TAG;
 
         public ConfigBuilder setPath(String path) {
-            this.path = path;
+//            this.path = path;
             return this;
         }
 

@@ -14,18 +14,15 @@ import android.widget.TextView;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.myrouter.utils.Xlog;
+import com.example.myrouter.utils.XLog;
 import com.example.processxx.Greet;
 import com.yanzhenjie.permission.Action;
 import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.permission.Rationale;
 import com.yanzhenjie.permission.RequestExecutor;
 
-import java.io.File;
 import java.util.List;
 
-import static com.example.myrouter.utils.DiskIO.DEFAULT_LOGOUT_PATH;
-import static com.example.myrouter.utils.DiskIO.read;
 
 @Greet("sssss")
 public class MainActivity extends AppCompatActivity {
@@ -129,11 +126,11 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onAction(List<String> permissions) {
                         Log.d(TAG, "onAction: success");
-                        Xlog.init(true);
-                        Xlog.d("这是不待tag的");
-                        Xlog.d("hehehe", "这是带tag的");
-                        Xlog.d("这是不待tag的");
-                        Xlog.d("hehehe", "这是带tag的");
+                        XLog.init(true);
+                        XLog.d("这是不待tag的");
+                        XLog.d("hehehe", "这是带tag的");
+                        XLog.d("这是不待tag的");
+                        XLog.d("hehehe", "这是带tag的");
                     }
                 })
                 .onDenied(new Action() {

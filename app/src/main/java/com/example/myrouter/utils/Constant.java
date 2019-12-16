@@ -14,7 +14,7 @@ public class Constant {
     /**
      * 输出文件夹名称
      */
-    public static final String DEFAULT_LOGOUT_PATH =  Context.getFilesDir().getPath() + "/MiLog/";
+//    public static final String DEFAULT_LOGOUT_PATH =  Context.getFilesDir().getPath() + "/MiLog/";
     /**
      * 输出文件名称前缀
      */
